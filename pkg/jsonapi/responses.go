@@ -59,16 +59,21 @@ func (api *API) respondHostQuery(ctx context.Context, msgBytes []byte) error {
 	}
 	choices := make([]string, 0, 10)
 
-	for !isPublicSuffix(message.Host) {
+	host := message.Host
+	for {
 		// only query for paths and files in the store fully matching the hostname.
-		reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
+		reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(host))
 		if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
 			return errors.Wrapf(err, "failed to append search results")
 		}
-		if len(choices) > 0 {
+		hosts := strings.SplitN(host, ".", 2)
+		if len(hosts) <= 1 {
 			break
-		} else {
-			message.Host = strings.SplitN(message.Host, ".", 2)[1]
+		}
+		host = hosts[1]
+		suffix, icann := getPublicSuffix(host)
+		if icann && suffix == host {
+			host = hosts[0]
 		}
 	}
 

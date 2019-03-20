@@ -14,6 +14,10 @@ func isPublicSuffix(host string) bool {
 	return host == suffix
 }
 
+func getPublicSuffix(host string) (string, bool) {
+	return publicsuffix.PublicSuffix(host)
+}
+
 func regexSafeLower(str string) string {
 	return regexp.QuoteMeta(strings.ToLower(str))
 }
